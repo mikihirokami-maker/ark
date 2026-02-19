@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARK アイランド攻略計算機 Master v3</title>
+    <style>
+        body { font-family: sans-serif; background: #0f172a; color: #f8fafc; padding: 15px; display: flex; justify-content: center; }
+        .card { background: #1e293b; padding: 25px; border-radius: 12px; width: 100%; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); border: 1px solid #334155; }
+        h1 { font-size: 1.25rem; text-align: center; color: #38bdf8; margin-bottom: 20px; border-bottom: 2px solid #334155; padding-bottom: 10px; }
+        .input-label { font-size: 0.8rem; color: #94a3b8; margin-bottom: 6px; display: block; }
+        
+        /* 検索ボックスと全リスト表示 */
+        .search-area { position: relative; margin-bottom: 20px; }
+        #dinoInput { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #334155; background: #0f172a; color: white; box-sizing: border-box; font-size: 1rem; outline: none; }
+        #dinoInput:focus { border-color: #38bdf8; }
+        #suggestList { 
+            position: absolute; width: 100%; max-height: 300px; overflow-y: auto; 
+            background: #1e293b; border: 1px solid #38bdf8; z-index: 100; 
+            display: none; border-radius: 0 0 8px 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        .suggest-item { padding: 12px; border-bottom: 1px solid #334155; cursor: pointer; font-size: 0.95rem; }
+        .suggest-item:hover { background: #38bdf8; color: #0f172a; font-weight: bold; }
+
+        #level { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #334155; background: #0f172a; color: white; box-sizing: border-box; margin-bottom: 20px; font-size: 1rem; }
+        button { width: 100%; padding: 15px; background: #38bdf8; border: none; border-radius: 8px; color: #0f172a; font-weight: bold; cursor: pointer; font-size: 1.1rem; }
+
+        #result { margin-top: 20px; padding: 20px; background: #0f172a; border-radius: 10px; border-left: 5px solid #38bdf8; display: none; }
+        .res-row { display: flex; justify-content: space-between; margin-bottom: 12px; }
+        .res-val { color: #fbbf24; font-weight: bold; font-size: 1.2rem; }
+        .advice { font-size: 0.85rem; color: #94a3b8; margin-top: 15px; border-top: 1px solid #334155; padding-top: 10px; line-height: 1.6; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>🦖 ARK 昏睡計算機 Master</h1>
+    
+    <span class="input-label">恐竜名を選択または検索(ひらがな可)</span>
+    <div class="search-area">
+        <input type="text" id="dinoInput" placeholder="タップして一覧表示..." autocomplete="off" onfocus="showList()" oninput="onInput()">
+        <div id="suggestList"></div>
+    </div>
+
+    <span class="input-label">個体レベル</span>
+    <input type="number" id="level" value="150" min="1" max="150">
+
+    <button onclick="calculate()">必要数を算出</button>
+
+    <div id="result">
+        <div id="resTitle" style="font-weight:bold; margin-bottom:15px; color:#38bdf8;"></div>
+        <div class="res-row"><span>木の弓 (麻酔矢)</span> <span class="res-val" id="bow">--</span></div>
+        <div class="res-row"><span>クロスボウ (麻酔矢)</span> <span class="res-val" id="cbow">--</span></div>
+        <div class="res-row"><span>長銃 (麻酔弾)</span> <span class="res-val" id="dart">--</span></div>
+        <div class="advice" id="advice"></div>
+    </div>
+</div>
+
+<script>
+// [カタカナ名, ひらがな名, 基本昏睡値, 上昇値, アドバイス]
+const data = [
+    ["アロサウルス", "あろさうるす", 1000, 60, "群れのリーダーは防御力が高い。"],
+    ["カルノタウルス", "かるのたうるす", 425, 25.5, "ノックバックに注意。崖の上から撃とう。"],
+    ["ティラノサウルス(レックス)", "てぃらのさうるすれっくす", 1550, 93, "大型門トラップが安定。"],
+    ["ユウティラヌス", "ゆうてぃらぬす", 1550, 93, "取り巻きを先に処理。"],
+    ["ギガノトサウルス", "ぎがのとさうるす", 10000, 600, "金属トラップ必須。一瞬で起きる。"],
+    ["スピノサウルス", "すぴのさうるす", 850, 51, "気絶減少が超速い。"],
+    ["バリオニクス", "ばりおにくす", 325, 19.5, "ボーラ無効。陸で戦え。"],
+    ["カプロスクス", "かぷろすくす", 400, 24, "飛びかかり拘束に注意。"],
+    ["ラプトル(ユタラプトル)", "らぷとるゆたらぷとる", 180, 10.8, "ボーラで足止め。"],
+    ["サーベルタイガー", "さーべるたいがー", 480, 28.8, "洞窟の番人。"],
+    ["ティラコレオ", "てぃらこれお", 700, 42, "レッドウッドの木に潜伏。"],
+    ["ダイアウルフ", "だいあうるふ", 450, 27, "防具なし。気絶は早い。"],
+    ["ダイアベア", "だいあべあ", 1000, 60, "殺さないよう麻酔弾推奨。"],
+    ["メガロサウルス", "めがろさうるす", 1500, 90, "昼に寝込みを襲う。"],
+    ["ヒエノドン", "ひえのどん", 125, 7.5, "なでなでテイム。"],
+    ["ディロフォサウルス", "でぃろふぉさうるす", 100, 6, "毒液に注意。"],
+    ["プルロヴィア", "ぷるろゔぃあ", 500, 30, "地中奇襲が脅威。"],
+    ["ミクロラプトル", "みくららぷとる", 100, 6, "騎乗解除攻撃。"],
+    ["デーオドン(ダエオドン)", "でーおどんだえおどん", 600, 36, "回復能力が高い。"],
+    ["トロオドン", "とろおどん", 150, 9, "夜間の気絶攻撃が危険。"],
+    ["ディメトロドン", "でぃめとろどん", 750, 45, "減少が非常に早い。"],
+    ["アンキロサウルス", "あんきろさうるす", 420, 25.2, "引き撃ちが楽。"],
+    ["ドエディクルス", "どえでぃくるす", 440, 26.4, "丸まるとダメージカット。"],
+    ["カストロイデス(ビーバー)", "かすとろいですびーばー", 350, 21, "回復が早い。野菜好き。"],
+    ["テリジノサウルス", "てりじのさうるす", 1000, 60, "罠なしは厳禁。"],
+    ["ステゴサウルス", "すごとさうるす", 500, 30, "背びれモードに注意。"],
+    ["トリケラトプス", "とりけらとぷす", 150, 9, "頭は硬いので足を狙え。"],
+    ["パキリノサウルス", "ぱきりのさうるす", 300, 18, "ガスでヘイト解除。"],
+    ["マンモス", "まんもす", 1000, 60, "雪山の重戦車。"],
+    ["ウーリーサイ", "うーりーさい", 600, 36, "助走突進は即死級。"],
+    ["メガテリウム", "めがてりうむ", 1000, 60, "虫ボーナスに注意。"],
+    ["ブロントサウルス", "ぶろんとさうるす", 10000, 600, "圧倒的昏睡値。"],
+    ["ディプロドクス", "でぃぷろどくす", 3000, 180, "突き飛ばしが激しい。"],
+    ["イグアノドン", "いぐあのどん", 190, 11.4, "ボーラで止めて。"],
+    ["パラサウロロフス", "ぱらさうろろふす", 150, 9, "逃げるのでボーラ必須。"],
+    ["ガリミムス", "がりみむす", 160, 9.6, "足が速い。ボラで。"],
+    ["パキケファロサウルス", "ぱきけふぁろさうるす", 160, 9.6, "突進攻撃に注意。"],
+    ["メガロケロス(シカ)", "めがろけろすしか", 150, 9, "逃げ足が速い。"],
+    ["プロプトドン(カンガルー)", "ぷろぷとどんかんがるー", 350, 21, "レアフラワーで誘う。"],
+    ["フィオミア", "ふぃおみあ", 150, 9, "肥料生産の神。"],
+    ["カルボネミス(カメ)", "かるぼねみすかめ", 275, 16.5, "頭以外は硬い。"],
+    ["アルゲンタヴィス", "あるげんたゔぃす", 600, 36, "罠に入れれば簡単。"],
+    ["プテラノドン", "ぷてらのどん", 120, 7.2, "ボーラで止めて。"],
+    ["タペヤラ", "たぺやら", 450, 27, "ギリーかレアフラワー。"],
+    ["ケツァルコアトルス", "けつぁるこあとるす", 1850, 111, "着陸地点を見極めて。"],
+    ["ペラゴルニス", "ぺらごるにす", 150, 9, "水面に降りられる。"],
+    ["メガロドン", "めがろどん", 800, 48, "引き撃ち推奨。"],
+    ["モササウルス", "もささうるす", 3000, 180, "深海の王者。"],
+    ["プレシオサウルス", "ぷれしおさうるす", 1600, 96, "2匹セットが多い。"],
+    ["アンコウ(アングラー)", "あんこうあんぐらー", 250, 15, "真珠集めに便利。"],
+    ["ダンクルオステウス", "だんくるおすてうす", 1150, 69, "頭が非常に硬い。"],
+    ["エレクトロフォラス", "えれくとろふぉらす", 200, 12, "気絶攻撃が厄介。"],
+    ["サルコスクス(ワニ)", "さるこすくすわに", 400, 24, "後ろを取りやすい。"],
+    ["ディプロカウルス", "でぃぷろかうるす", 150, 9, "水中の酸素用。"],
+    ["プルモノスコルピウス(サソリ)", "ぷるものすこるぴうすさそり", 150, 9, "気絶値を上げてくる。"],
+    ["アラネオモーフス(クモ)", "あらねおもーふすくも", 150, 9, "防虫剤が必要。"],
+    ["アースロプレウラ(ムカデ)", "あーすろぷれうらむかで", 850, 51, "防具を溶かす酸。"]
+];
+
+const input = document.getElementById('dinoInput');
+const suggest = document.getElementById('suggestList');
+let selectedDino = null;
+
+function showList() { render(data); suggest.style.display = 'block'; }
+
+function onInput() {
+    const val = input.value.toLowerCase();
+    const filtered = data.filter(d => d[0].includes(val) || d[1].includes(val));
+    render(filtered);
+    suggest.style.display = 'block';
+}
+
+function render(items) {
+    suggest.innerHTML = '';
+    items.sort((a,b) => a[0].localeCompare(b[0], 'ja'));
+    items.forEach(d => {
+        const div = document.createElement('div');
+        div.className = 'suggest-item';
+        div.textContent = d[0];
+        div.onclick = () => { input.value = d[0]; selectedDino = d; suggest.style.display = 'none'; };
+        suggest.appendChild(div);
+    });
+}
+
+document.addEventListener('click', (e) => { if (!e.target.closest('.search-area')) suggest.style.display = 'none'; });
+
+function calculate() {
+    if (!selectedDino) { alert("リストから選択してください"); return; }
+    const lv = parseInt(document.getElementById('level').value);
+    const maxT = selectedDino[2] + (selectedDino[3] * (lv - 1));
+    document.getElementById('resTitle').textContent = `${selectedDino[0]} (Lv.${lv})`;
+    document.getElementById('bow').textContent = Math.ceil((maxT/90)*1.2) + " 本";
+    document.getElementById('cbow').textContent = Math.ceil((maxT/157.5)*1.2) + " 本";
+    document.getElementById('dart').textContent = Math.ceil((maxT/221)*1.2) + " 発";
+    document.getElementById('advice').innerHTML = `<strong>攻略アドバイス:</strong><br>${selectedDino[4]}`;
+    document.getElementById('result').style.display = 'block';
+}
+</script>
+</body>
+</html>
