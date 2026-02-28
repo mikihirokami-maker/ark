@@ -3,184 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARK 昏睡計算機 Master v4 (攻撃倍率対応)</title>
     <style>
-        body { font-family: sans-serif; background: #0f172a; color: #f8fafc; padding: 15px; display: flex; justify-content: center; }
-        .card { background: #1e293b; padding: 25px; border-radius: 12px; width: 100%; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); border: 1px solid #334155; }
-        h1 { font-size: 1.25rem; text-align: center; color: #38bdf8; margin-bottom: 20px; border-bottom: 2px solid #334155; padding-bottom: 10px; }
-        .input-label { font-size: 0.8rem; color: #94a3b8; margin-bottom: 6px; display: block; }
-        
-        .search-area { position: relative; margin-bottom: 15px; }
-        #dinoInput { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #334155; background: #0f172a; color: white; box-sizing: border-box; font-size: 1rem; outline: none; }
-        #dinoInput:focus { border-color: #38bdf8; }
-        #suggestList { 
-            position: absolute; width: 100%; max-height: 250px; overflow-y: auto; 
-            background: #1e293b; border: 1px solid #38bdf8; z-index: 100; 
-            display: none; border-radius: 0 0 8px 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        body {
+            margin: 0;
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
         }
-        .suggest-item { padding: 12px; border-bottom: 1px solid #334155; cursor: pointer; font-size: 0.95rem; }
-        .suggest-item:hover { background: #38bdf8; color: #0f172a; font-weight: bold; }
+        .container {
+            width: 100%;
+            max-width: 450px;
+            background: #fff;
+            text-align: center;
+            overflow: hidden;
+            position: relative;
+        }
+        /* メインビジュアル部分 */
+        .hero {
+            background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1)), url('https://via.placeholder.com/450x600') center/cover;
+            padding: 20px 10px;
+            color: white;
+            position: relative;
+        }
+        .top-text {
+            font-weight: bold;
+            font-size: 24px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .pink-text { color: #ff00ff; }
+        .orange-text { color: #ff6600; }
 
-        .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
-        .input-item { flex: 1; }
-        .num-input { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #334155; background: #0f172a; color: white; box-sizing: border-box; font-size: 1rem; }
+        .logo-area {
+            background: white;
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+            border: 2px solid #eee;
+            color: #333;
+            font-weight: bold;
+        }
 
-        button { width: 100%; padding: 15px; background: #38bdf8; border: none; border-radius: 8px; color: #0f172a; font-weight: bold; cursor: pointer; font-size: 1.1rem; transition: 0.2s; }
-        button:active { background: #0ea5e9; transform: scale(0.98); }
+        .main-copy {
+            font-size: 32px;
+            font-weight: 900;
+            line-height: 1.2;
+            text-shadow: 3px 3px 0px #fff, -1px -1px 0px #fff, 1px -1px 0px #fff, -1px 1px 0px #fff;
+            color: #ff3399; /* グラデーションのベース色 */
+        }
 
-        #result { margin-top: 20px; padding: 20px; background: #0f172a; border-radius: 10px; border-left: 5px solid #38bdf8; display: none; }
-        .res-row { display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center; }
-        .res-label { font-size: 0.9rem; }
-        .res-val { color: #fbbf24; font-weight: bold; font-size: 1.2rem; }
-        .advice { font-size: 0.85rem; color: #94a3b8; margin-top: 15px; border-top: 1px solid #334155; padding-top: 10px; line-height: 1.6; }
+        /* 説明文エリア */
+        .description-box {
+            background-color: #5d2b1e;
+            color: white;
+            padding: 15px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .highlight-yellow { color: #ffff00; font-weight: bold; }
+
+        /* LINEボタンエリア */
+        .line-section {
+            background-color: #00b9ff;
+            padding: 20px 10px;
+            color: white;
+        }
+        .line-btn {
+            background-color: #06c755;
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 15px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 20px;
+            margin: 10px 20px;
+            box-shadow: 0 4px 0 #05a346;
+        }
+        .footer-note {
+            font-size: 12px;
+            color: #666;
+            padding: 10px;
+        }
     </style>
 </head>
 <body>
+    <div class="container">
+        <div class="hero">
+            <div class="top-text">
+                <span class="pink-text">お金を払ってやる</span><br>
+                <span class="orange-text">関係はもう終わり！</span>
+            </div>
+            
+            <div class="logo-area">Ai@m</div>
 
-<div class="card">
-    <h1>🦖 ARK 昏睡計算機 Master</h1>
-    
-    <span class="input-label">恐竜名を選択または検索(ひらがな可)</span>
-    <div class="search-area">
-        <input type="text" id="dinoInput" placeholder="タップして一覧表示..." autocomplete="off" onfocus="showList()" oninput="onInput()">
-        <div id="suggestList"></div>
-    </div>
-
-    <div class="input-group">
-        <div class="input-item">
-            <span class="input-label">個体レベル</span>
-            <input type="number" id="level" class="num-input" value="150" min="1" max="150">
+            <div class="main-copy">
+                パパ活よりも<br>
+                コスパがいい！
+            </div>
         </div>
-        <div class="input-item">
-            <span class="input-label">武器の攻撃力 (%)</span>
-            <input type="number" id="damage" class="num-input" value="100" min="100" step="0.1">
+
+        <div class="description-box">
+            ヤリモク女性が多いアイアムには<br>
+            性欲を持て余した女性が勢揃い！<br>
+            マッチ率は<span class="highlight-yellow">脅威の99%超え！</span>
+        </div>
+
+        <div class="line-section">
+            <div>簡単登録 LINE 友達追加するだけ</div>
+            <div style="font-weight: bold; font-size: 20px;">ヤリモク女性と今すぐ会える！</div>
+            
+            <div style="margin-top: 20px; color: #ff00ff; font-weight: bold;">\ 予定が合えば即会える！ /</div>
+            <a href="#" class="line-btn">FREE 無料で友達追加する</a>
+        </div>
+
+        <div class="footer-note">
+            ※18歳未満のご利用は固くお断りします。
         </div>
     </div>
-
-    <button onclick="calculate()">必要数を算出</button>
-
-    <div id="result">
-        <div id="resTitle" style="font-weight:bold; margin-bottom:15px; color:#38bdf8;"></div>
-        <div class="res-row"><span class="res-label">木の弓 (麻酔矢)</span> <span class="res-val" id="bow">--</span></div>
-        <div class="res-row"><span class="res-label">クロスボウ (麻酔矢)</span> <span class="res-val" id="cbow">--</span></div>
-        <div class="res-row"><span class="res-label">長銃 (麻酔弾)</span> <span class="res-val" id="dart">--</span></div>
-        <div class="advice" id="advice"></div>
-    </div>
-</div>
-
-<script>
-const data = [
-    ["アロサウルス", "あろさうるす", 1000, 60, "群れのリーダーは防御力が高い。"],
-    ["カルノタウルス", "かるのたうるす", 425, 25.5, "ノックバックに注意。崖の上から撃とう。"],
-    ["ティラノサウルス(レックス)", "てぃらのさうるすれっくす", 1550, 93, "大型門トラップが安定。"],
-    ["ユウティラヌス", "ゆうてぃらぬす", 1550, 93, "取り巻きを先に処理。"],
-    ["ギガノトサウルス", "ぎがのとさうるす", 10000, 600, "金属トラップ必須。一瞬で起きる。"],
-    ["スピノサウルス", "すぴのさうるす", 850, 51, "気絶減少が超速い。"],
-    ["バリオニクス", "ばりおにくす", 325, 19.5, "ボーラ無効。陸で戦え。"],
-    ["カぷロスクス", "かぷろすくす", 400, 24, "飛びかかり拘束に注意。"],
-    ["ラプトル(ユタラプトル)", "らぷとるゆたらぷとる", 180, 10.8, "ボーラで足止め。"],
-    ["サーベルタイガー", "さーべるたいがー", 480, 28.8, "洞窟の番人。"],
-    ["ティラコレオ", "てぃらこれお", 700, 42, "レッドウッドの木に潜伏。"],
-    ["ダイアウルフ", "だいあうるふ", 450, 27, "防具なし。気絶は早い。"],
-    ["ダイアベア", "だいあべあ", 1000, 60, "殺さないよう麻酔弾推奨。"],
-    ["メガロサウルス", "めがろさうるす", 1500, 90, "昼に寝込みを襲う。"],
-    ["ヒエノドン", "ひえのどん", 125, 7.5, "なでなでテイム。"],
-    ["ディロフォサウルス", "でぃろふぉさうるす", 100, 6, "毒液に注意。"],
-    ["プルロヴィア", "ぷるろゔぃあ", 500, 30, "地中奇襲が脅威。"],
-    ["ミクロラプトル", "みくららぷとる", 100, 6, "騎乗解除攻撃。"],
-    ["デーオドン(ダエオドン)", "でーおどんだえおどん", 600, 36, "回復能力が高い。"],
-    ["トロオドン", "とろおどん", 150, 9, "夜間の気絶攻撃が危険。"],
-    ["ディメトロドン", "でぃめとろどん", 750, 45, "減少が非常に早い。"],
-    ["アンキロサウルス", "あんきろさうるす", 420, 25.2, "引き撃ちが楽。"],
-    ["ドエディクルス", "どえでぃくるす", 440, 26.4, "丸まるとダメージカット。"],
-    ["カストロイデス(ビーバー)", "かすとろいですびーばー", 350, 21, "回復が早い。野菜好き。"],
-    ["テリジノサウルス", "てりじのさうるす", 1000, 60, "罠なしは厳禁。"],
-    ["ステゴサウルス", "すごとさうるす", 500, 30, "背びれモードに注意。"],
-    ["トリケラトプス", "とりけらとぷす", 150, 9, "頭は硬いので足を狙え。"],
-    ["パキリノサウルス", "ぱきりのさうるす", 300, 18, "ガスでヘイト解除。"],
-    ["マンモス", "まんもす", 1000, 60, "雪山の重戦車。"],
-    ["ウーリーサイ", "うーりーさい", 600, 36, "助走突進は即死級。"],
-    ["メガテリウム", "めがてりうむ", 1000, 60, "虫ボーナスに注意。"],
-    ["ブロントサウルス", "ぶろんとさうるす", 10000, 600, "圧倒的昏睡値。"],
-    ["ディプロドクス", "でぃぷろどくす", 3000, 180, "突き飛ばしが激しい。"],
-    ["イグアノドン", "いぐあのどん", 190, 11.4, "ボーラで止めて。"],
-    ["パラサウロロフス", "ぱらさうろろふす", 150, 9, "逃げるのでボーラ必須。"],
-    ["ガリミムス", "がりみむす", 160, 9.6, "足が速い。ボラで。"],
-    ["パキケファロサウルス", "ぱきけふぁろさうるす", 160, 9.6, "突進攻撃に注意。"],
-    ["メガロケロス(シカ)", "めがろけろすしか", 150, 9, "逃げ足が速い。"],
-    ["プロプトドン(カンガルー)", "ぷろぷとどんかんがるー", 350, 21, "レアフラワーで誘う。"],
-    ["フィオミア", "ふぃおみあ", 150, 9, "肥料生産の神。"],
-    ["カルボネミス(カメ)", "かるぼねみすかめ", 275, 16.5, "頭以外は硬い。"],
-    ["アルゲンタヴィス", "あるげんたゔぃす", 600, 36, "罠に入れれば簡単。"],
-    ["プテラノドン", "ぷてらのどん", 120, 7.2, "ボーラで止めて。"],
-    ["タペヤラ", "たぺやら", 450, 27, "ギリーかレアフラワー。"],
-    ["ケツァルコアトルス", "けつぁるこあとるす", 1850, 111, "着陸地点を見極めて。"],
-    ["ペラゴルニス", "ぺらごるにす", 150, 9, "水面に降りられる。"],
-    ["メガロドン", "めがろどん", 800, 48, "引き撃ち推奨。"],
-    ["モササウルス", "もささうるす", 3000, 180, "深海の王者。"],
-    ["プレシオサウルス", "ぷれしおさうるす", 1600, 96, "2匹セットが多い。"],
-    ["アンコウ(アングラー)", "あんこうあんぐらー", 250, 15, "真珠集めに便利。"],
-    ["ダンクルオステウス", "だんくるおすてうす", 1150, 69, "頭が非常に硬い。"],
-    ["エレクトロフォラス", "えれくとろふぉらす", 200, 12, "気絶攻撃が厄介。"],
-    ["サルコスクス(ワニ)", "さるこすくすわに", 400, 24, "後ろを取りやすい。"],
-    ["ディプロカウルス", "でぃぷろかうるす", 150, 9, "水中の酸素用。"],
-    ["プルモノスコルピウス(サソリ)", "ぷるものすこるぴうすさそり", 150, 9, "気絶値を上げてくる。"],
-    ["アラネオモーフス(クモ)", "あらねおもーふすくも", 150, 9, "防虫剤が必要。"],
-    ["アースロプレウラ(ムカデ)", "あーすろぷれうらむかで", 850, 51, "防具を溶かす酸。"]
-];
-
-const input = document.getElementById('dinoInput');
-const suggest = document.getElementById('suggestList');
-let selectedDino = null;
-
-function showList() { render(data); suggest.style.display = 'block'; }
-
-function onInput() {
-    const val = input.value.toLowerCase();
-    const filtered = data.filter(d => d[0].includes(val) || d[1].includes(val));
-    render(filtered);
-    suggest.style.display = 'block';
-}
-
-function render(items) {
-    suggest.innerHTML = '';
-    items.sort((a,b) => a[0].localeCompare(b[0], 'ja'));
-    items.forEach(d => {
-        const div = document.createElement('div');
-        div.className = 'suggest-item';
-        div.textContent = d[0];
-        div.onclick = () => { input.value = d[0]; selectedDino = d; suggest.style.display = 'none'; };
-        suggest.appendChild(div);
-    });
-}
-
-document.addEventListener('click', (e) => { if (!e.target.closest('.search-area')) suggest.style.display = 'none'; });
-
-function calculate() {
-    if (!selectedDino) { alert("リストから恐竜を選択してください"); return; }
-    
-    const lv = parseInt(document.getElementById('level').value) || 1;
-    const dmg = parseFloat(document.getElementById('damage').value) || 100;
-    const dmgMult = dmg / 100; // 攻撃倍率 (100% = 1.0)
-
-    // 最大昏睡値の計算
-    const maxT = selectedDino[2] + (selectedDino[3] * (lv - 1));
-    
-    document.getElementById('resTitle').textContent = `${selectedDino[0]} (Lv.${lv} / 武器${dmg}%)`;
-
-    // 必要数の算出 (各武器の基本昏睡値 × 攻撃倍率 で割る)
-    // 1.2倍しているのは、ARKの昏睡減少やミスを考慮した予備分（バッファ）です
-    const bowCount = Math.ceil((maxT / (90 * dmgMult)) * 1.2);
-    const cbowCount = Math.ceil((maxT / (157.5 * dmgMult)) * 1.2);
-    const dartCount = Math.ceil((maxT / (221 * dmgMult)) * 1.2);
-
-    document.getElementById('bow').textContent = bowCount + " 本";
-    document.getElementById('cbow').textContent = cbowCount + " 本";
-    document.getElementById('dart').textContent = dartCount + " 発";
-    
-    document.getElementById('advice').innerHTML = `<strong>攻略アドバイス:</strong><br>${selectedDino[4]}`;
-    document.getElementById('result').style.display = 'block';
-}
-</script>
 </body>
 </html>
